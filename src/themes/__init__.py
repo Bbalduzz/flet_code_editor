@@ -12,6 +12,7 @@ class CodeEditorTheme:
     SOLARIZED_DARK: Theme
     ONE_DARK: Theme
     AYU_DARK: Theme
+    RUST_DARK: Theme
 
 
 # Theme definitions
@@ -160,6 +161,30 @@ AYU_DARK = Theme(
     function_call="#ffb454",
 )
 
+RUST_DARK = Theme(
+    name="Rust Dark",
+    editor_bg="#282c34",  # Dark blue-gray background
+    editor_fg="#abb2bf",  # Light gray default text
+    line_number_fg="#5c6370",
+    line_number_bg="#282c34",
+    selection_bg="#3e4451",
+    cursor_bg="#528bff",
+    cursor_fg="#282c34",
+    invisible_fg="#3b4048",
+    keyword="#c678dd",  # Purple - for 'impl', 'where', 'fn', 'if', 'match', 'let', 'return'
+    function="#61afef",  # Blue - for function names like 'next', 'size_hint'
+    string="#98c379",  # Green - for strings like "rust1", "1.0.0"
+    comment="#5c6370",  # Gray - for comments
+    class_name="#e5c07b",  # Yellow/gold - for types like 'Iterator', 'Split', 'Option'
+    number="#d19a66",  # Orange - for numbers like 0, 1
+    docstring="#98c379",  # Green
+    decorator="#e5c07b",  # Yellow/gold - for attributes like #[stable], #[inline]
+    instance="#e06c75",  # Red/pink - for 'self'
+    builtin="#56b6c2",  # Cyan - for 'None', 'Some', 'true', 'bool'
+    exception="#e06c75",  # Red
+    function_call="#61afef",  # Blue - for method calls like .iter(), .position()
+)
+
 # Assign to CodeEditorTheme class for better API
 CodeEditorTheme.GITHUB_DARK = GITHUB_DARK
 CodeEditorTheme.MONOKAI = MONOKAI
@@ -167,6 +192,7 @@ CodeEditorTheme.DRACULA = DRACULA
 CodeEditorTheme.SOLARIZED_DARK = SOLARIZED_DARK
 CodeEditorTheme.ONE_DARK = ONE_DARK
 CodeEditorTheme.AYU_DARK = AYU_DARK
+CodeEditorTheme.RUST_DARK = RUST_DARK
 
 ALL_THEMES = {
     "github_dark": GITHUB_DARK,
@@ -175,6 +201,7 @@ ALL_THEMES = {
     "solarized_dark": SOLARIZED_DARK,
     "one_dark": ONE_DARK,
     "ayu_dark": AYU_DARK,
+    "rust_dark": RUST_DARK,
 }
 
 

@@ -57,7 +57,7 @@ def main(page: ft.Page):
     }
 
     current_config = CodeEditorConfig(
-        show_spaces=False, language=Python, font_family="JetBrains Mono"
+        show_spaces=False, language=Python, font_family="Consolas"
     )
     state = {
         "line_height_mult": 1.5,
@@ -66,7 +66,8 @@ def main(page: ft.Page):
     }
 
     SAMPLE_CODE = {
-        "python": '''# Python Example - Fibonacci & Calculator
+        "python": '''
+# Python Example - Fibonacci & Calculator
 import os
 import json
 from typing import Dict, Any
@@ -106,53 +107,34 @@ if __name__ == "__main__":
     print(f"Fibonacci(10) = {fibonacci(10)}")
     print(f"5 + 3 = {calc.compute('add', 5, 3)}")
 ''',
-        "rust": """// Rust Example - Fibonacci & Calculator
-use std::collections::HashMap;
+        "rust": """
+#[stable(feature = "rust1", since = "1.0.0")]
+impl<'a, T, P> Iterator for Split<'a, T, P>
+where
+    P: FnMut(&T) -> bool,
+{
+    type Item = &'a [T];
 
-fn fibonacci(n: u32) -> u32 {
-    match n {
-        0 | 1 => n,
-        _ => fibonacci(n - 1) + fibonacci(n - 2),
-    }
-}
+    #[inline]
+    fn next(&mut self) -> Option<&'a [T]> {
+        if self.finished {
+            return None;
+        }
 
-struct Calculator {
-    result: f64,
-    history: HashMap<String, Vec<String>>,
-}
-
-impl Calculator {
-    pub fn new() -> Self {
-        Self {
-            result: 0.0,
-            history: HashMap::new(),
+        match self.v.iter().position(|x| (self.pred)(x)) {
+            None => self.finish(),
+            Some(idx) => {
+                let ret = Some(&self.v[..idx]);
+                self.v = &self.v[idx + 1..];
+                ret
+            }
         }
     }
 
-    pub fn add(&mut self, a: f64, b: f64) -> f64 {
-        self.result = a + b;
-        self.log_operation("add");
-        self.result
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        if self.finished { (0, Some(0)) } else { (1, Some(self.v.len() + 1)) }
     }
-
-    pub fn multiply(&mut self, a: f64, b: f64) -> f64 {
-        self.result = a * b;
-        self.log_operation("multiply");
-        self.result
-    }
-
-    fn log_operation(&mut self, op: &str) {
-        self.history
-            .entry("operations".to_string())
-            .or_insert_with(Vec::new)
-            .push(op.to_string());
-    }
-}
-
-fn main() {
-    let mut calc = Calculator::new();
-    println!("Fibonacci(10) = {}", fibonacci(10));
-    println!("5 + 3 = {}", calc.add(5.0, 3.0));
 }
 """,
     }
