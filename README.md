@@ -1,6 +1,7 @@
 # Flet Code Editor
+A syntax-highlighting code editor component for [Flet](https://flet.dev) (v0.28.3).
 
-A syntax-highlighting code editor component for [Flet](https://flet.dev) (v0.28.x).
+https://github.com/user-attachments/assets/f161ee93-8690-43f8-8a63-3c839249e3e5
 
 ## Features
 
