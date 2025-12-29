@@ -11,6 +11,8 @@ from .src import (
     Operation,
     View,
     ViewLine,
+    Language,
+    Python,
     CodeEditorTheme,
     GITHUB_DARK,
     MONOKAI,
@@ -36,6 +38,9 @@ __all__ = [
     "View",
     "ViewLine",
     "Highlighter",
+    # Languages
+    "Language",
+    "Python",
     # Themes
     "CodeEditorTheme",
     "GITHUB_DARK",

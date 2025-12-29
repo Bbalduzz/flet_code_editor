@@ -7,8 +7,7 @@ from typing import List, Optional
 import flet as ft
 
 try:
-    from tree_sitter import Language, Parser, Query
-    import tree_sitter_python
+    from tree_sitter import Language as TSLanguage, Parser, Query
 
     TREE_SITTER_AVAILABLE = True
 except ImportError:
@@ -17,33 +16,6 @@ except ImportError:
 from .config import CodeEditorConfig
 from .document import Document
 
-# Tree-sitter query for Python syntax highlighting
-PYTHON_QUERY_SCM = """
-(comment) @comment
-(string) @string
-(escape_sequence) @string.escape
-(class_definition name: (identifier) @type)
-(function_definition name: (identifier) @function)
-(call function: (identifier) @function.call)
-(call function: (attribute attribute: (identifier) @function.call))
-(decorator) @decorator
-(
-  [
-    "def" "class" "if" "else" "elif" "return" "try" "except" "import" "from"
-    "while" "for" "in" "and" "or" "not" "is" "as" "with" "lambda" "pass"
-    "break" "continue" "global" "nonlocal" "raise" "yield" "await" "async"
-    "assert" "del" "print" "exec"
-  ] @keyword
-)
-(true) @constant.builtin
-(false) @constant.builtin
-(none) @constant.builtin
-(integer) @number
-(float) @number
-(identifier) @variable
-(attribute attribute: (identifier) @property)
-"""
-
 
 class Highlighter:
     """Handles syntax highlighting using tree-sitter with regex fallback."""
@@ -51,6 +23,7 @@ class Highlighter:
     def __init__(self, config: CodeEditorConfig):
         self.config = config
         self.theme = config.theme
+        self.language = config.language
         self.parser: Optional[Parser] = None
         self.query = None
         self.use_regex_fallback = False
@@ -64,27 +37,57 @@ class Highlighter:
         self._parse_timer = None
         self._lock = threading.Lock()
 
-        if TREE_SITTER_AVAILABLE:
+        # Try to initialize tree-sitter
+        if TREE_SITTER_AVAILABLE and self.language:
             try:
-                PY_LANGUAGE = Language(tree_sitter_python.language())
-                self.parser = Parser(PY_LANGUAGE)
-                self.query = Query(PY_LANGUAGE, PYTHON_QUERY_SCM)
+                ts_lang = self.language.get_tree_sitter_language()
+                if ts_lang is not None:
+                    lang_obj = TSLanguage(ts_lang)
+                    self.parser = Parser(lang_obj)
+                    self.query = Query(lang_obj, self.language.tree_sitter_query)
+                else:
+                    self.use_regex_fallback = True
             except Exception as e:
                 print(f"Tree-sitter init failed: {e}")
                 self.use_regex_fallback = True
         else:
             self.use_regex_fallback = True
 
-        self.regex_rules = [
-            (r"#[^\n]*", self.theme.comment),
-            (r"(?:r|u|f)?'[^'\\\n]*(?:\\.[^'\\\n]*)*'?", self.theme.string),
-            (r'(?:r|u|f)?"[^"\\\n]*(?:\\.[^"\\\n]*)*"?', self.theme.string),
-            (
-                r"\b(?:def|class|if|else|return|import|from|while|for|in)\b",
-                self.theme.keyword,
-            ),
-            (r"\b\d+\b", self.theme.number),
-        ]
+        # Build regex rules from language patterns
+        self.regex_rules = self._build_regex_rules()
+
+    def _build_regex_rules(self) -> List[tuple]:
+        """Build regex rules from language patterns."""
+        if not self.language or not self.language.regex_patterns:
+            return []
+
+        rules = []
+        for pattern, token_type in self.language.regex_patterns:
+            color = self._get_token_color(token_type)
+            rules.append((pattern, color))
+        return rules
+
+    def _get_token_color(self, token_type: str) -> str:
+        """Map token type to theme color."""
+        if token_type.startswith("comment"):
+            return self.theme.comment
+        if token_type.startswith("string"):
+            return self.theme.string
+        if token_type.startswith("function"):
+            return self.theme.function
+        if token_type in ("type", "class"):
+            return self.theme.class_name
+        if token_type == "keyword":
+            return self.theme.keyword
+        if token_type == "constant.builtin":
+            return self.theme.builtin
+        if token_type == "decorator":
+            return self.theme.decorator
+        if token_type == "number":
+            return self.theme.number
+        if token_type in ("property", "instance"):
+            return self.theme.instance
+        return self.theme.editor_fg
 
     def _get_capture_color(self, capture_name: str) -> str:
         """Map tree-sitter capture names to theme colors."""

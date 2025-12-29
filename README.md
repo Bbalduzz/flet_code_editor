@@ -50,13 +50,36 @@ CodeEditorTheme.AYU_DARK
 config = CodeEditorConfig(theme=CodeEditorTheme.DRACULA)
 ```
 
+## Languages
+
+```python
+from flet_code_editor import CodeEditorConfig, Python, Language
+
+# Use built-in Python language (default)
+config = CodeEditorConfig(language=Python)
+
+# Create a custom language
+class MyLanguage(Language):
+    name = "mylang"
+    tree_sitter_module = "tree_sitter_mylang"  # Optional
+    tree_sitter_query = """..."""              # Tree-sitter query
+    regex_patterns = [                          # Fallback regex patterns
+        (r"#[^\n]*", "comment"),
+        (r'"[^"]*"', "string"),
+        (r"\b(if|else|while)\b", "keyword"),
+    ]
+
+config = CodeEditorConfig(language=MyLanguage)
+```
+
 ## Configuration
 
 ```python
-from flet_code_editor import CodeEditorConfig, Theme
+from flet_code_editor import CodeEditorConfig, Theme, Python
 
 config = CodeEditorConfig(
     theme=Theme(),           # Color theme
+    language=Python,         # Language for highlighting
     font_family="Consolas",  # Font family
     font_size=14,            # Font size in pixels
     line_height_px=20,       # Line height in pixels

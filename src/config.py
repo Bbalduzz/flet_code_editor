@@ -1,6 +1,12 @@
 """Configuration dataclasses for the Flet Code Editor."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Optional, Type
+
+if TYPE_CHECKING:
+    from .languages.base import Language
 
 
 @dataclass
@@ -39,9 +45,15 @@ class CodeEditorConfig:
     """Configuration for the code editor."""
 
     theme: Theme = field(default_factory=Theme)
+    language: Optional[Type[Language]] = None  # Defaults to Python
     font_family: str = "Consolas"
     font_size: int = 14
     line_height_px: int = 20
     show_line_numbers: bool = True
     show_tabs: bool = False
     show_spaces: bool = False
+
+    def __post_init__(self):
+        if self.language is None:
+            from .languages import Python
+            self.language = Python
