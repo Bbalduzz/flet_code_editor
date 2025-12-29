@@ -13,6 +13,7 @@ from .src import (
     ViewLine,
     Language,
     Python,
+    Rust,
     CodeEditorTheme,
     GITHUB_DARK,
     MONOKAI,
@@ -41,6 +42,7 @@ __all__ = [
     # Languages
     "Language",
     "Python",
+    "Rust",
     # Themes
     "CodeEditorTheme",
     "GITHUB_DARK",

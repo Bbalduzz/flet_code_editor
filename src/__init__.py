@@ -6,7 +6,7 @@ from .editor import CodeEditor
 from .highlighter import Highlighter
 from .operations import Cursor, OpCode, Operation
 from .view import View, ViewLine
-from .languages import Language, Python
+from .languages import Language, Python, Rust
 from .themes import (
     CodeEditorTheme,
     GITHUB_DARK,
@@ -36,6 +36,7 @@ __all__ = [
     # Languages
     "Language",
     "Python",
+    "Rust",
     # Themes
     "CodeEditorTheme",
     "GITHUB_DARK",
