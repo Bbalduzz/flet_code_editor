@@ -95,8 +95,8 @@ config = CodeEditorConfig(
     line_height_px=20,       # Line height in pixels
     show_line_numbers=True,  # Show line number gutter
     show_spaces=False,       # Show space characters as ·
-    show_tabs=False,         # Show tab characters as →
-    show_line_breaks=False,  # Show line breaks as ↵
+    show_tabs=False,         # Show tab characters as ▸
+    show_line_breaks=False,  # Show line breaks as ¬
 )
 ```
 

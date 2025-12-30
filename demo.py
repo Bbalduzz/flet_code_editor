@@ -6,12 +6,13 @@ from pathlib import Path
 import flet as ft
 
 try:
-    from . import CodeEditor, CodeEditorConfig, Python, Rust, get_theme, list_themes
+    from . import CodeEditor, CodeEditorConfig, JSON, Python, Rust, get_theme, list_themes
 except ImportError:
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from flet_code_editor import (
         CodeEditor,
         CodeEditorConfig,
+        JSON,
         Python,
         Rust,
         get_theme,
@@ -141,9 +142,33 @@ where
     }
 }
 """,
+        "json": """{
+  "name": "Flet Code Editor",
+  "version": "0.1.0",
+  "description": "A syntax-highlighting code editor for Flet",
+  "features": [
+    "Syntax highlighting",
+    "Search & Replace",
+    "Multiple themes",
+    "Smart indentation"
+  ],
+  "config": {
+    "font_size": 14,
+    "show_line_numbers": true,
+    "show_spaces": false,
+    "theme": "github_dark"
+  },
+  "languages": ["python", "rust", "json"],
+  "stats": {
+    "lines_of_code": 2500,
+    "contributors": null,
+    "is_open_source": true
+  }
+}
+""",
     }
 
-    LANGUAGES = {"python": Python, "rust": Rust}
+    LANGUAGES = {"python": Python, "rust": Rust, "json": JSON}
     FONTS = [
         "Consolas",
         "JetBrains Mono",

@@ -312,10 +312,10 @@ class Highlighter:
                     char_bg = search_bg_map[i]
 
                 if self.config.show_spaces and char == " ":
-                    char = "·"
+                    char = "\u00B7"
                     char_color = self.theme.invisible_fg
                 elif self.config.show_tabs and char == "\t":
-                    char = "→"
+                    char = "\u25B8"
                     char_color = self.theme.invisible_fg
 
             is_cursor = line_num == document.cursor.line and i == document.cursor.column
@@ -370,7 +370,7 @@ class Highlighter:
         if self.config.show_line_breaks and line_num < len(document.lines) - 1:
             spans.append(
                 ft.TextSpan(
-                    "↵",
+                    "\u00AC",
                     style=ft.TextStyle(
                         font_family=self.config.font_family,
                         size=self.config.font_size,

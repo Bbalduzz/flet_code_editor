@@ -4,7 +4,7 @@ from .config import CodeEditorConfig, Theme
 from .document import Document
 from .editor import CodeEditor
 from .highlighter import Highlighter
-from .languages import Language, Python, Rust
+from .languages import JSON, Language, Python, Rust
 from .operations import Cursor, OpCode, Operation
 from .search import Search, SearchMatch
 from .themes import (
@@ -39,6 +39,7 @@ __all__ = [
     "Highlighter",
     # Languages
     "Language",
+    "JSON",
     "Python",
     "Rust",
     # Themes
