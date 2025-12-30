@@ -180,6 +180,11 @@ class CodeEditor(ft.Container):
 
     def handle_keyboard_event(self, e: ft.KeyboardEvent):
         """Handle global keyboard events. Set this as page.on_keyboard_event."""
+        # Handle Tab key separately (single press, not repeatable)
+        if e.key == "Tab":
+            self.input_listener._execute_key_operation(e.key, e.shift, e.ctrl, e.meta)
+            return
+
         if e.key in self.REPEATABLE_KEYS or e.meta or e.ctrl:
             key_combo = f"{e.key}_{e.shift}_{e.ctrl}_{e.meta}"
 
