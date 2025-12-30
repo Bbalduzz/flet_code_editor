@@ -1,5 +1,7 @@
 """View components for the code editor."""
 
+from typing import List, Optional
+
 import flet as ft
 
 from .config import CodeEditorConfig
@@ -18,10 +20,14 @@ class ViewLine(ft.Container):
         highlighter: Highlighter,
         max_line_num: int,
         config: CodeEditorConfig,
+        search_matches: Optional[List] = None,
+        current_match_index: int = -1,
     ):
         super().__init__()
         gutter_width = len(str(max_line_num)) * (config.font_size * 0.7) + 20
-        spans = highlighter.run(text, line_number, document)
+        spans = highlighter.run(
+            text, line_number, document, search_matches, current_match_index
+        )
 
         gutter_content = None
         if config.show_line_numbers:
@@ -73,6 +79,12 @@ class View(ft.ListView):
         self.spacing = 0
         self.item_extent = config.line_height_px
         self.expand = True
+        self.bgcolor = config.theme.editor_bg
+
+        # Search state (set by CodeEditor)
+        self.search_matches: Optional[List] = None
+        self.current_match_index: int = -1
+
         self.render(init=True)
 
     def render(self, init=False):
@@ -88,6 +100,8 @@ class View(ft.ListView):
                     self.highlighter,
                     max_line,
                     self.config,
+                    self.search_matches,
+                    self.current_match_index,
                 )
             )
         self.controls = new_controls

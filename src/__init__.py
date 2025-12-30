@@ -4,20 +4,21 @@ from .config import CodeEditorConfig, Theme
 from .document import Document
 from .editor import CodeEditor
 from .highlighter import Highlighter
-from .operations import Cursor, OpCode, Operation
-from .view import View, ViewLine
 from .languages import Language, Python, Rust
+from .operations import Cursor, OpCode, Operation
+from .search import Search, SearchMatch
 from .themes import (
-    CodeEditorTheme,
+    AYU_DARK,
+    DRACULA,
     GITHUB_DARK,
     MONOKAI,
-    DRACULA,
-    SOLARIZED_DARK,
     ONE_DARK,
-    AYU_DARK,
+    SOLARIZED_DARK,
+    CodeEditorTheme,
     get_theme,
     list_themes,
 )
+from .view import View, ViewLine
 
 __all__ = [
     # Main components
@@ -29,6 +30,9 @@ __all__ = [
     "OpCode",
     "Operation",
     "Cursor",
+    # Search
+    "Search",
+    "SearchMatch",
     # View
     "View",
     "ViewLine",

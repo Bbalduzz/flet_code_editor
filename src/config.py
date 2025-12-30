@@ -24,6 +24,8 @@ class Theme:
     cursor_bg: str = "#c9d1d9"
     cursor_fg: str = "#0D1117"
     invisible_fg: str = "#30363d"
+    search_match_bg: str = "#613315"
+    search_current_bg: str = "#9e6a03"
 
     # Syntax highlighting colors
     keyword: str = "#ff7b72"
@@ -52,8 +54,10 @@ class CodeEditorConfig:
     show_line_numbers: bool = True
     show_tabs: bool = False
     show_spaces: bool = False
+    show_line_breaks: bool = False
 
     def __post_init__(self):
         if self.language is None:
             from .languages import Python
+
             self.language = Python

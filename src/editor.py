@@ -1,7 +1,7 @@
 """Main editor component with input handling."""
 
 import threading
-from typing import Callable
+from typing import Callable, List, Optional
 
 import flet as ft
 
@@ -9,6 +9,7 @@ from .config import CodeEditorConfig
 from .document import Document
 from .highlighter import Highlighter
 from .operations import OpCode
+from .search import Search, SearchMatch
 from .view import View
 
 
@@ -29,6 +30,7 @@ class InputListener(ft.Stack):
             on_change=self._handle_text_input,
         )
         self.controls = [self.child_control, self.proxy_input]
+        self.expand = True
 
         # Key repeat state
         self.key_repeat_active = False
@@ -40,7 +42,11 @@ class InputListener(ft.Stack):
         """Handle text input from the proxy TextField."""
         val = self.proxy_input.value
         if val:
-            self.document.execute_operation(OpCode.INSERT_CHAR, char=val)
+            if "\n" in val:
+                # Use NEWLINE operation for smart indent
+                self.document.execute_operation(OpCode.NEWLINE)
+            else:
+                self.document.execute_operation(OpCode.INSERT_CHAR, char=val)
             self.proxy_input.value = ""
             self.proxy_input.update()
             self.on_change_callback()
@@ -142,13 +148,18 @@ class CodeEditor(ft.Container):
     def __init__(self, text: str = "", config: CodeEditorConfig = None):
         super().__init__()
         self.config = config or CodeEditorConfig()
-        self.document = Document()
+        self.document = Document(language=self.config.language)
         self.document.lines = text.split("\n")
         self.highlighter = Highlighter(self.config)
         self.view = View(self.document, self.highlighter, self.config)
+
+        # Search functionality
+        self.search = Search(self.document, on_change=self._on_search_change)
+
         self.input_listener = InputListener(
             self.view, self.document, self.on_document_change
         )
+
         self.content = self.input_listener
         self.expand = True
         self.on_click = self._on_click
@@ -205,10 +216,12 @@ class CodeEditor(ft.Container):
     def update_config(self, new_config: CodeEditorConfig):
         """Update the editor configuration."""
         self.config = new_config
+        self.document.set_language(new_config.language)
         self.highlighter = Highlighter(self.config)
         self.view.config = self.config
         self.view.item_extent = self.config.line_height_px
         self.view.highlighter = self.highlighter
+        self.view.bgcolor = self.config.theme.editor_bg
         self.view.render()
 
     def get_text(self) -> str:
@@ -222,4 +235,81 @@ class CodeEditor(ft.Container):
         self.document.cursor.column = 0
         self.document.cursor.anchor_line = 0
         self.document.cursor.anchor_column = 0
+        self.search.clear()  # Clear search when text changes
         self.view.render()
+
+    # ===== Search API =====
+
+    def _on_search_change(self):
+        """Called when search state changes."""
+        self.view.search_matches = self.search.matches
+        self.view.current_match_index = self.search.current_index
+        self.view.render()
+
+    def find(
+        self,
+        query: str,
+        regex: bool = False,
+        case_sensitive: bool = False,
+        whole_word: bool = False,
+    ) -> int:
+        """
+        Search for all occurrences of the query.
+
+        Args:
+            query: The search string or regex pattern
+            regex: Enable regex mode
+            case_sensitive: Enable case-sensitive matching
+            whole_word: Match whole words only
+
+        Returns:
+            Number of matches found
+        """
+        return self.search.find(query, regex, case_sensitive, whole_word)
+
+    def find_next(self) -> Optional[SearchMatch]:
+        """Move to the next search match."""
+        match = self.search.find_next()
+        if match:
+            self.search.select_current_match()
+        return match
+
+    def find_previous(self) -> Optional[SearchMatch]:
+        """Move to the previous search match."""
+        match = self.search.find_previous()
+        if match:
+            self.search.select_current_match()
+        return match
+
+    def replace_current(self, replacement: str) -> bool:
+        """Replace the current search match."""
+        result = self.search.replace_current(replacement)
+        if result:
+            self.view.render()
+        return result
+
+    def replace_all(self, replacement: str) -> int:
+        """Replace all search matches."""
+        count = self.search.replace_all(replacement)
+        if count > 0:
+            self.view.render()
+        return count
+
+    def clear_search(self):
+        """Clear the current search."""
+        self.search.clear()
+
+    @property
+    def search_matches(self) -> List[SearchMatch]:
+        """Get all current search matches."""
+        return self.search.matches
+
+    @property
+    def search_match_count(self) -> int:
+        """Get the total number of search matches."""
+        return self.search.match_count
+
+    @property
+    def current_search_index(self) -> int:
+        """Get the index of the currently selected search match."""
+        return self.search.current_index

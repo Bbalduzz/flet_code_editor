@@ -63,6 +63,10 @@ def main(page: ft.Page):
         "line_height_mult": 1.5,
         "current_lang": "python",
         "current_theme": "github_dark",
+        "search_regex": False,
+        "search_case": False,
+        "search_word": False,
+        "editor_keyboard_enabled": True,
     }
 
     SAMPLE_CODE = {
@@ -162,6 +166,188 @@ where
             current_config.font_size * state["line_height_mult"]
         )
         editor.update_config(current_config)
+
+    # --- Search Bar ---
+
+    def on_input_focus(e):
+        state["editor_keyboard_enabled"] = False
+
+    def on_input_blur(e):
+        state["editor_keyboard_enabled"] = True
+
+    search_input = ft.TextField(
+        hint_text="Search...",
+        height=32,
+        text_size=12,
+        content_padding=ft.padding.symmetric(horizontal=10, vertical=4),
+        border_color=COLORS["border"],
+        focused_border_color=COLORS["accent"],
+        bgcolor=COLORS["bg_elevated"],
+        border_radius=6,
+        expand=True,
+        text_style=ft.TextStyle(font_family="Inter", color=COLORS["text_primary"]),
+        hint_style=ft.TextStyle(color=COLORS["text_tertiary"]),
+        on_submit=lambda e: do_search(),
+        on_focus=on_input_focus,
+        on_blur=on_input_blur,
+    )
+
+    replace_input = ft.TextField(
+        hint_text="Replace...",
+        height=32,
+        text_size=12,
+        content_padding=ft.padding.symmetric(horizontal=10, vertical=4),
+        border_color=COLORS["border"],
+        focused_border_color=COLORS["accent"],
+        bgcolor=COLORS["bg_elevated"],
+        border_radius=6,
+        width=150,
+        text_style=ft.TextStyle(font_family="Inter", color=COLORS["text_primary"]),
+        hint_style=ft.TextStyle(color=COLORS["text_tertiary"]),
+        on_focus=on_input_focus,
+        on_blur=on_input_blur,
+    )
+
+    match_count_text = ft.Text(
+        "0 results",
+        size=11,
+        color=COLORS["text_tertiary"],
+        font_family="Inter",
+        width=70,
+    )
+
+    def update_match_count():
+        count = editor.search_match_count
+        idx = editor.current_search_index
+        if count > 0:
+            match_count_text.value = f"{idx + 1}/{count}"
+        else:
+            match_count_text.value = "0 results"
+        match_count_text.update()
+
+    def do_search():
+        query = search_input.value or ""
+        editor.find(
+            query,
+            regex=state["search_regex"],
+            case_sensitive=state["search_case"],
+            whole_word=state["search_word"],
+        )
+        update_match_count()
+
+    def on_search_change(e):
+        do_search()
+
+    search_input.on_change = on_search_change
+
+    def on_find_next(e):
+        editor.find_next()
+        update_match_count()
+
+    def on_find_prev(e):
+        editor.find_previous()
+        update_match_count()
+
+    def on_replace(e):
+        editor.replace_current(replace_input.value or "")
+        update_match_count()
+
+    def on_replace_all(e):
+        editor.replace_all(replace_input.value or "")
+        update_match_count()
+
+    def on_close_search(e):
+        editor.clear_search()
+        search_input.value = ""
+        search_input.update()
+        update_match_count()
+
+    def make_toggle_button(label: str, key: str):
+        def on_click(e):
+            state[key] = not state[key]
+            e.control.style.bgcolor = (
+                COLORS["accent"] if state[key] else COLORS["bg_card"]
+            )
+            e.control.update()
+            do_search()
+
+        return ft.TextButton(
+            label,
+            style=ft.ButtonStyle(
+                color=COLORS["text_primary"],
+                bgcolor=COLORS["accent"] if state[key] else COLORS["bg_card"],
+                padding=ft.padding.symmetric(horizontal=8, vertical=4),
+                shape=ft.RoundedRectangleBorder(radius=4),
+                text_style=ft.TextStyle(size=11, font_family="Inter"),
+            ),
+            height=26,
+            on_click=on_click,
+        )
+
+    def icon_button(icon: str, tooltip: str, on_click):
+        return ft.IconButton(
+            icon=icon,
+            icon_size=16,
+            icon_color=COLORS["text_secondary"],
+            tooltip=tooltip,
+            style=ft.ButtonStyle(
+                padding=4,
+                shape=ft.RoundedRectangleBorder(radius=4),
+            ),
+            on_click=on_click,
+        )
+
+    search_bar = ft.Container(
+        content=ft.Row(
+            [
+                search_input,
+                make_toggle_button(".*", "search_regex"),
+                make_toggle_button("Aa", "search_case"),
+                make_toggle_button("W", "search_word"),
+                match_count_text,
+                icon_button(ft.Icons.KEYBOARD_ARROW_UP, "Previous", on_find_prev),
+                icon_button(ft.Icons.KEYBOARD_ARROW_DOWN, "Next", on_find_next),
+                ft.Container(width=1, height=20, bgcolor=COLORS["border"]),
+                replace_input,
+                ft.TextButton(
+                    "Replace",
+                    style=ft.ButtonStyle(
+                        color=COLORS["text_primary"],
+                        bgcolor=COLORS["bg_card"],
+                        padding=ft.padding.symmetric(horizontal=10, vertical=4),
+                        shape=ft.RoundedRectangleBorder(radius=4),
+                        text_style=ft.TextStyle(size=11, font_family="Inter"),
+                    ),
+                    height=26,
+                    on_click=on_replace,
+                ),
+                ft.TextButton(
+                    "All",
+                    style=ft.ButtonStyle(
+                        color=COLORS["text_primary"],
+                        bgcolor=COLORS["bg_card"],
+                        padding=ft.padding.symmetric(horizontal=10, vertical=4),
+                        shape=ft.RoundedRectangleBorder(radius=4),
+                        text_style=ft.TextStyle(size=11, font_family="Inter"),
+                    ),
+                    height=26,
+                    on_click=on_replace_all,
+                ),
+                icon_button(ft.Icons.CLOSE, "Close", on_close_search),
+            ],
+            spacing=6,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+        bgcolor=COLORS["bg_elevated"],
+        padding=ft.padding.symmetric(horizontal=12, vertical=8),
+        border=ft.border.only(bottom=ft.BorderSide(1, COLORS["border"])),
+    )
+
+    editor_with_search = ft.Column(
+        [search_bar, editor],
+        spacing=0,
+        expand=True,
+    )
 
     # --- Vercel-style UI Components ---
 
@@ -670,6 +856,14 @@ where
                                     current_config.show_tabs, on_toggle("show_tabs")
                                 ),
                                 "Render tabs",
+                            ),
+                            setting_row(
+                                "Line Breaks",
+                                toggle_switch(
+                                    current_config.show_line_breaks,
+                                    on_toggle("show_line_breaks"),
+                                ),
+                                "Render newlines",
                                 show_border=False,
                             ),
                         ]
@@ -737,9 +931,13 @@ where
         border=ft.border.only(left=ft.BorderSide(1, COLORS["border"])),
     )
 
-    layout = ft.Row([editor, settings_panel], expand=True, spacing=0)
+    layout = ft.Row([editor_with_search, settings_panel], expand=True, spacing=0)
 
-    page.on_keyboard_event = editor.handle_keyboard_event
+    def handle_keyboard(e):
+        if state["editor_keyboard_enabled"]:
+            editor.handle_keyboard_event(e)
+
+    page.on_keyboard_event = handle_keyboard
     page.add(layout)
 
 

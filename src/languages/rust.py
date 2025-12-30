@@ -9,6 +9,10 @@ class Rust(Language):
     name = "rust"
     tree_sitter_module = "tree_sitter_rust"
 
+    # Rust uses braces for blocks
+    indent_triggers = ["{", "(", "["]
+    indent_size = 4
+
     tree_sitter_query = """
 ; Match the impl block with attribute
 (attribute_item
@@ -59,8 +63,14 @@ class Rust(Language):
         (r'"[^"\\]*(?:\\.[^"\\]*)*"', "string"),
         (r"'[^'\\]*(?:\\.[^'\\]*)*'", "string"),
         (r"r#*\"[\s\S]*?\"#*", "string"),
-        (r"\b(?:fn|let|mut|const|static|if|else|match|loop|while|for|in|return|break|continue|pub|mod|use|struct|enum|impl|trait|type|where|as|ref|self|Self|async|await|move|dyn|unsafe|extern|crate|super)\b", "keyword"),
-        (r"\b(?:i8|i16|i32|i64|i128|isize|u8|u16|u32|u64|u128|usize|f32|f64|bool|char|str|String|Vec|Option|Result)\b", "type"),
+        (
+            r"\b(?:fn|let|mut|const|static|if|else|match|loop|while|for|in|return|break|continue|pub|mod|use|struct|enum|impl|trait|type|where|as|ref|self|Self|async|await|move|dyn|unsafe|extern|crate|super)\b",
+            "keyword",
+        ),
+        (
+            r"\b(?:i8|i16|i32|i64|i128|isize|u8|u16|u32|u64|u128|usize|f32|f64|bool|char|str|String|Vec|Option|Result)\b",
+            "type",
+        ),
         (r"\b(?:true|false|None|Some|Ok|Err)\b", "constant.builtin"),
         (r"\b\d+\.?\d*(?:e[+-]?\d+)?(?:f32|f64|i32|i64|u32|u64)?\b", "number"),
         (r"\bself\b", "instance"),

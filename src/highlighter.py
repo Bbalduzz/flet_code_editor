@@ -200,10 +200,37 @@ class Highlighter:
             print(f"Background parse error: {e}")
 
     def run(
-        self, line_text: str, line_num: int, document: Document
+        self,
+        line_text: str,
+        line_num: int,
+        document: Document,
+        search_matches: List = None,
+        current_match_index: int = -1,
     ) -> List[ft.TextSpan]:
-        """Generate highlighted text spans for a line."""
+        """
+        Generate highlighted text spans for a line.
+
+        Args:
+            line_text: The text content of the line
+            line_num: The line number (0-indexed)
+            document: The document instance
+            search_matches: Optional list of SearchMatch objects
+            current_match_index: Index of the currently selected match
+        """
         style_map = [self.theme.editor_fg] * len(line_text)
+        search_bg_map = [None] * len(line_text)  # Track search highlighting
+
+        # Apply search match highlighting
+        if search_matches:
+            for idx, match in enumerate(search_matches):
+                if match.line == line_num:
+                    bg_color = (
+                        self.theme.search_current_bg
+                        if idx == current_match_index
+                        else self.theme.search_match_bg
+                    )
+                    for i in range(match.start_col, min(match.end_col, len(line_text))):
+                        search_bg_map[i] = bg_color
 
         if not self.use_regex_fallback:
             if document.version != self.last_parsed_version:
@@ -276,10 +303,13 @@ class Highlighter:
             char_bg = None
 
             if not is_end:
+                # Priority: selection > search highlight
                 if is_line_selected:
                     char_bg = self.theme.selection_bg
                 elif sel_start_idx != -1 and sel_start_idx <= i < sel_end_idx:
                     char_bg = self.theme.selection_bg
+                elif search_bg_map[i]:
+                    char_bg = search_bg_map[i]
 
                 if self.config.show_spaces and char == " ":
                     char = "·"
@@ -335,5 +365,18 @@ class Highlighter:
 
             if not is_end:
                 current_text += char
+
+        # Add line break symbol at end of line (except last line)
+        if self.config.show_line_breaks and line_num < len(document.lines) - 1:
+            spans.append(
+                ft.TextSpan(
+                    "↵",
+                    style=ft.TextStyle(
+                        font_family=self.config.font_family,
+                        size=self.config.font_size,
+                        color=self.theme.invisible_fg,
+                    ),
+                )
+            )
 
         return spans

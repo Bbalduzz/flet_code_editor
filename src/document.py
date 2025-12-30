@@ -1,6 +1,6 @@
 """Document model for the code editor."""
 
-from typing import List
+from typing import List, Optional, Type
 
 from .operations import Cursor, OpCode, Operation
 
@@ -8,12 +8,47 @@ from .operations import Cursor, OpCode, Operation
 class Document:
     """Manages the text content, cursor, and operations for the editor."""
 
-    def __init__(self):
+    def __init__(self, language: Optional[Type] = None):
         self.lines: List[str] = [""]
         self.cursor = Cursor()
         self.undo_stack: List[Operation] = []
         self.redo_stack: List[Operation] = []
         self.version = 0
+        self._language = language  # For smart indentation
+
+    def set_language(self, language: Optional[Type]):
+        """Set the language for smart indentation."""
+        self._language = language
+
+    def _compute_smart_indent(self) -> str:
+        """Compute the indentation for a new line based on the current line."""
+        if self.cursor.line >= len(self.lines):
+            return ""
+
+        current_line = self.lines[self.cursor.line]
+        # Get text before cursor (we indent based on what's before the cursor)
+        text_before_cursor = current_line[: self.cursor.column]
+
+        # Get current indentation
+        base_indent = ""
+        for ch in text_before_cursor:
+            if ch in " \t":
+                base_indent += ch
+            else:
+                break
+
+        # Check if we should add extra indentation
+        if self._language is not None:
+            if self._language.should_increase_indent(text_before_cursor):
+                # Add one level of indentation
+                base_indent += " " * self._language.indent_size
+        else:
+            # Default behavior: indent after : { ( [
+            stripped = text_before_cursor.rstrip()
+            if stripped and stripped[-1] in ":({[":
+                base_indent += "    "
+
+        return base_indent
 
     def get_full_text(self) -> str:
         """Return the full document text."""
@@ -181,15 +216,18 @@ class Document:
             self.insert_text(char)
 
         elif opcode == OpCode.NEWLINE:
+            # Compute smart indentation before inserting newline
+            smart_indent = self._compute_smart_indent()
+            newline_text = "\n" + smart_indent
             if record_undo:
                 op_obj = Operation(
                     OpCode.NEWLINE,
                     prev_cursor.line,
                     prev_cursor.column,
-                    text="\n",
+                    text=newline_text,
                     prev_cursor=prev_cursor,
                 )
-            self.insert_text("\n")
+            self.insert_text(newline_text)
 
         elif opcode == OpCode.BACKSPACE:
             if self.cursor.has_selection():
